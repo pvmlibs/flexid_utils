@@ -47,3 +47,5 @@ tmp-php.ini
 *~
 *.xml
 .idea
+flexid_utils_arginfo.h
+*.IoT
