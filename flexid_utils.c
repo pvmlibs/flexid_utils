@@ -4,6 +4,10 @@
 # include <config.h>
 #endif
 
+#if PHP_INT_SIZE < 8
+# error "flexid_utils requires a 64-bit system"
+#endif
+
 #include "php.h"
 #include "zend_exceptions.h"
 #include "ext/standard/info.h"
