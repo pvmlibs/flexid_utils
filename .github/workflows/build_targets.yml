@@ -1,0 +1,103 @@
+name: Build PIE binaries
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+
+    container:
+      image: ${{ format('php:{0}{1}{2}',
+        matrix.php == '8.6' && '8.6-rc' || matrix.php,
+        matrix.ts == 'zts' && '-zts' || '',
+        matrix.libc == 'musl' && '-alpine' || '') }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php:   ['8.1', '8.2', '8.3', '8.4', '8.5', '8.6']
+        arch:  ['x86_64', 'arm64']
+        ts:    ['nts', 'zts']
+        libc:  ['gnu', 'musl']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install build dependencies (Alpine / musl)
+        if: matrix.libc == 'musl'
+        run: apk add --no-cache autoconf gcc make musl-dev git jq tar
+
+      - name: Install build dependencies (Debian / gnu)
+        if: matrix.libc == 'gnu'
+        run: |
+          apt-get update
+          apt-get install -y autoconf gcc make libc6-dev git jq tar
+
+      - name: Build extension
+        env:
+          NO_INTERACTION: "1"
+          REPORT_EXIT_STATUS: "1"
+        run: |
+          phpize
+          EXT_VERSION="${GITHUB_REF_NAME#v}"
+          ./configure --with-php-config=$(which php-config) --with-version="${EXT_VERSION}" CFLAGS="-O2 -g0"
+          make -j$(nproc)
+          make test
+
+      - name: Package PIE binary
+        id: package
+        run: |
+          set -e
+          EXT_NAME=$(jq -r '.name' composer.json | cut -d/ -f2)
+          EXT_VERSION="${GITHUB_REF_NAME#v}"
+          PHP_VER=${{ matrix.php }}
+          ARCH=${{ matrix.arch == 'arm64' && 'aarch64' || 'x86_64' }}
+          LIBC=${{ matrix.libc }}
+          TS=${{ matrix.ts }}
+
+          SO_FILE="modules/${EXT_NAME}.so"
+          [ -f "$SO_FILE" ] || { echo "error: $SO_FILE not found" >&2; exit 1; }
+          mkdir -p dist
+          cp "$SO_FILE" dist/
+          cd dist
+          
+          strip --strip-unneeded "${EXT_NAME}.so"
+
+          ARCHIVE="php_${EXT_NAME}-${EXT_VERSION}_php${PHP_VER}-${ARCH}-linux-${LIBC}-${TS}.tgz"
+          tar czf "$ARCHIVE" "${EXT_NAME}.so"
+
+          echo "archive=$ARCHIVE" >> $GITHUB_OUTPUT
+          echo "path=dist/$ARCHIVE"   >> $GITHUB_OUTPUT
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.package.outputs.archive }}
+          path: ${{ steps.package.outputs.path }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: dist
+          pattern: '*.tgz'
+          merge-multiple: true
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: dist/*.tgz
+          tag_name: ${{ github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}

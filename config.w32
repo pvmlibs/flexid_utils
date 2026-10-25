@@ -1,0 +1,7 @@
+ARG_ENABLE('flexid_utils', 'flexid support', 'no');
+
+if (PHP_FLEXID_UTILS != 'no') {
+	AC_DEFINE('HAVE_FLEXID_UTILS', 1, "Define to 1 if the PHP extension 'flexid' is available.");
+
+	EXTENSION('flexid_utils', 'flexid_utils.c', null, '/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1');
+}

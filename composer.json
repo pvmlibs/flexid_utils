@@ -1,0 +1,13 @@
+{
+    "name": "pvmlibs/flexid_utils",
+    "type": "php-ext",
+    "license": "MIT",
+    "description": "Tools for encoding, encrypting and signing numbers",
+    "require": {
+        "php-64bit": "^8.1"
+    },
+    "php-ext": {
+        "extension-name": "flexid_utils",
+        "download-url-method": ["pre-packaged-binary", "composer-default"]
+    }
+}
