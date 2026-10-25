@@ -28,16 +28,9 @@ jobs:
         libc:  ['gnu', 'musl']
 
     steps:
-      - name: Prepare Alpine arm64 for JS actions
+      - name: Fix Alpine arm64 JS actions
+        uses: laverdet/alpine-arm64@v1
         if: matrix.arch == 'arm64' && matrix.libc == 'musl'
-        run: |
-          apk add --no-cache nodejs
-          for node in /__e/node*; do
-            [ -d "$node/bin" ] || mkdir -p "$node/bin"
-            ln -sf /usr/bin/node "$node/bin/node"
-            ln -sf /usr/bin/npm  "$node/bin/npm"
-          done
-          sed -i 's/ID=alpine/ID=NotAlpine/' /etc/os-release
 
       - name: Checkout
         uses: actions/checkout@v6
