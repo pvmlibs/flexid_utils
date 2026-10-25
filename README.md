@@ -12,9 +12,11 @@ This extension provides tools for:
 
 ## Installation with PIE
 
+There are prebuild packages for PHP 8.1-8.6 for x86, ARM, zts, nts, musl and gnu, so you can install without building:
 ```shell
-pie install pvmlibs/flexid_utils
+pie install --no-interaction pvmlibs/flexid_utils
 ```
+For any other platform (Windows / Mac) you need to build it from source.
 
 ## Installation from sources
 

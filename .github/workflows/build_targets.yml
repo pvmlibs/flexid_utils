@@ -64,8 +64,8 @@ jobs:
           EXT_NAME=$(jq -r '.name' composer.json | cut -d/ -f2)
           EXT_VERSION="${GITHUB_REF_NAME#v}"
           PHP_VER=${{ matrix.php }}
-          ARCH=${{ matrix.arch == 'arm64' && 'aarch64' || 'x86_64' }}
-          LIBC=${{ matrix.libc }}
+          ARCH=${{ matrix.arch == 'arm64' && 'arm64' || 'x86_64' }}
+          LIBC=${{ matrix.libc == 'gnu' && 'glibc' || 'musl' }}
           TS=${{ matrix.ts }}
 
           SO_FILE="modules/${EXT_NAME}.so"
