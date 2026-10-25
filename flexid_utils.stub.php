@@ -9,10 +9,10 @@ namespace FlexId;
 class Siphash
 {
     /**
-     * @param string $key
+     * @param string $key 16-byte secret key
      * @throws \ValueError
      */
-    public function __construct(#[\SensitiveParameter] $key) {}
+    public function __construct($key) {}
 
     /**
      * @param string $data message to hash
@@ -34,7 +34,7 @@ class Blake3
      * @param string $key 32-byte secret key
      * @throws \ValueError
      */
-    public function __construct(#[\SensitiveParameter] $key) {}
+    public function __construct($key) {}
 
     /**
      * @param string $data message to hash
@@ -57,7 +57,7 @@ class Sparx64
      * @param string $key 16-byte secret key
      * @throws \ValueError
      */
-    public function __construct(#[\SensitiveParameter] $key) {}
+    public function __construct($key) {}
     public function encrypt(int $num): int {}
     public function decrypt(int $data): int {}
 
@@ -74,7 +74,7 @@ class Sparx128
      * @param string $key 32-byte secret key
      * @throws \ValueError
      */
-    public function __construct(#[\SensitiveParameter] $key) {}
+    public function __construct($key) {}
     /**
      * @return list<int> 2 numbers output
      */
@@ -141,7 +141,7 @@ class HashEncoder
      * @param int $offset number added to $num when encoding and subtracted after decoding
      * @throws \ValueError
      */
-    public function __construct(#[\SensitiveParameter] $alphabet, $offset = 0) {}
+    public function __construct($alphabet, $offset = 0) {}
 
     /**
      * @param int $num only positive numbers are allowed
