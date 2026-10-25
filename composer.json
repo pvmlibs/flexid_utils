@@ -4,8 +4,7 @@
     "license": "MIT",
     "description": "Tools for encoding, encrypting and signing numbers",
     "require": {
-        "php": "^8.1",
-        "php-64bit": "*"
+        "php": ">= 8.1.0"
     },
     "php-ext": {
         "extension-name": "flexid_utils",
