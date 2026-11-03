@@ -100,7 +100,7 @@ class Encoder
      * @param bool $fixedLength if set, both encoded numbers in doubleEncode have max possible encoded length for given alphabet
      * @throws \ValueError
      */
-    public function __construct($alphabet, $separator = ' ', bool $fixedLength = false) {}
+    public function __construct($alphabet, $separator = ' ', $fixedLength = false) {}
     public function encode(int $num): string {}
     /**
      * @throws \ValueError
