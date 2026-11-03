@@ -16,6 +16,7 @@ typedef struct {
 	uint8_t separator;
 	uint64_t M;
 	uint64_t (*divmod)(uint64_t, uint32_t, uint64_t, uint64_t*);
+	bool fixedLength;
 	zend_object std;
 } encoder_object;
 
@@ -78,11 +79,13 @@ PHP_METHOD(FlexId_Encoder, __construct)
 {
 	char *alphabet, *separator = " ";
 	size_t alphabetLen, separatorLen = 1;
+    bool fixedLength = false;
 
-	ZEND_PARSE_PARAMETERS_START(1, 2)
+	ZEND_PARSE_PARAMETERS_START(1, 3)
 	Z_PARAM_STRING(alphabet, alphabetLen)
 	Z_PARAM_OPTIONAL
 	Z_PARAM_STRING_OR_NULL(separator, separatorLen)
+	Z_PARAM_BOOL(fixedLength)
 	ZEND_PARSE_PARAMETERS_END();
 
 
@@ -93,19 +96,22 @@ PHP_METHOD(FlexId_Encoder, __construct)
 
 	encoder_object *obj = Z_ENCODER_P(ZEND_THIS);
 
-	if (separatorLen != 1) {
-		zend_argument_value_error(2, "Separtor must be 1 character");
-		RETURN_THROWS();
-	}
+    if (fixedLength == false) {
+        if (separatorLen != 1) {
+            zend_argument_value_error(2, "Separator must be 1 character");
+            RETURN_THROWS();
+        }
 
-	obj->separator = (uint8_t)separator[0];
-	for (int i = 0; i < alphabetLen; i++) {
-		if (obj->separator == (uint8_t)(alphabet[i])) {
-			zend_argument_value_error(2, "Separtor must be unique - not included in alphabet");
-			RETURN_THROWS();
-		}
-	}
+        obj->separator = (uint8_t)separator[0];
+        for (int i = 0; i < alphabetLen; i++) {
+            if (obj->separator == (uint8_t)(alphabet[i])) {
+                zend_argument_value_error(2, "Separator must be unique - not included in alphabet");
+                RETURN_THROWS();
+            }
+        }
+    }
 
+    obj->fixedLength = fixedLength;
 	memset(obj->charPositions, 255, 256);
 
 	// maps character value with it's position in alphabet - optimize decoding
@@ -147,7 +153,7 @@ PHP_METHOD(FlexId_Encoder, __construct)
 	uint32_t digits = 0;
 	do {
 		digits++;
-		x = obj->divmod(x, obj->resultMaxLength, obj->M, &r);
+		x = obj->divmod(x, obj->alphabetLength, obj->M, &r);
 	} while (x > 0);
 
 	if (digits > 64) {
@@ -167,7 +173,7 @@ static uint8_t encode(uint64_t num, uint8_t startFrom, encoder_object **obj)
 
 	(*obj)->result[c++] = (*obj)->alphabet[reminder];
 
-	if (quotient == 0) {
+	if (quotient == 0 && (*obj)->fixedLength == false) {
 		return c;
 	}
 
@@ -178,6 +184,10 @@ static uint8_t encode(uint64_t num, uint8_t startFrom, encoder_object **obj)
 
 	// here always >= 1 chars, this will be the last so don't need to div
 	(*obj)->result[c++] = (*obj)->alphabet[quotient];
+
+    while ((*obj)->fixedLength && (c - startFrom) < (*obj)->resultMaxLength) {
+        (*obj)->result[c++] = (*obj)->alphabet[0];
+    }
 
 	return c;
 }
@@ -207,7 +217,7 @@ PHP_METHOD(FlexId_Encoder, doubleEncode)
 	encoder_object *obj = Z_ENCODER_P(ZEND_THIS);
 
 	uint8_t length = encode((uint64_t)hipart, 0, &obj);
-	if (length < obj->resultMaxLength) {
+	if (obj->fixedLength == false && length < obj->resultMaxLength) {
 		obj->result[length++] = obj->separator;
 	}
 	length = encode((uint64_t)lowpart, length, &obj);
@@ -288,12 +298,18 @@ PHP_METHOD(FlexId_Encoder, doubleDecode)
 	uint16_t part1Len = obj->resultMaxLength;
 	uint16_t part2Start = obj->resultMaxLength;
 
-	for (int16_t i = 0; i < strLen; i++) {
-		if ((uint8_t)str[i] == obj->separator) {
-			part1Len = i;
-			part2Start = i + 1;
-		}
-	}
+    if (obj->fixedLength == false) {
+        for (int16_t i = 0; i < strLen; i++) {
+            if ((uint8_t)str[i] == obj->separator) {
+                part1Len = i;
+                part2Start = i + 1;
+            }
+        }
+	} else if (strLen != obj->resultMaxLength * 2) {
+        zend_argument_value_error(1, "Input string is invalid");
+        RETURN_THROWS();
+    }
+
 	add_index_long(return_value, 0, (zend_long)decode(0, part1Len, str, &obj, &err));
     if (err != NULL) {
         zend_argument_value_error(1, err);

@@ -96,9 +96,11 @@ class Encoder
     /**
      * @param string $alphabet Custom alphabet (2-94 max length)
      * @param string $separator separator used in doubleEncode/doubleDecode, if first encoded number is less than getMaxEncodedLength()
+     *                          and $fixedLength is false
+     * @param bool $fixedLength if set, both encoded numbers in doubleEncode have max possible encoded length for given alphabet
      * @throws \ValueError
      */
-    public function __construct($alphabet, $separator = ' ') {}
+    public function __construct($alphabet, $separator = ' ', bool $fixedLength = false) {}
     public function encode(int $num): string {}
     /**
      * @throws \ValueError

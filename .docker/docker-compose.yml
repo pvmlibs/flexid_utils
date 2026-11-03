@@ -1,0 +1,9 @@
+services:
+  php85:
+    container_name: flexid_utils_php85
+    build:
+      dockerfile: ./Dockerfile_php85
+    working_dir: /ext
+    volumes:
+      - ../:/ext
+    tty: true

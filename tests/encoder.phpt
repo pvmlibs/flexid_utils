@@ -100,6 +100,9 @@ Custom alphabet encoder test
         var_dump(hash_final($incrementalHash));
         var_dump(\count($encodedIds) === $expected);
     }
+    $encoder = new \FlexId\Encoder(alphabet: $alphabet, fixedLength: true);
+    var_dump(strlen($encoder->encode(1)));
+    var_dump(strlen($encoder->encode(0)));
 ?>
 --EXPECT--
 string(64) "baf33b0d44ca96854fedcb2fa6584cd7a9acf1bd84a665ca3b2ce1ff6d4e5676"
@@ -354,3 +357,5 @@ string(64) "2ebfbc853c8b34d50bd27af13482bf154a5d1c961abe6c77124c309afab511be"
 bool(true)
 string(64) "1f066a9547d1963a5d0dcaaa8a3c9fda60e47474e9bb95569f5d82ac4a3a122d"
 bool(true)
+int(11)
+int(11)
