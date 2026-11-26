@@ -79,5 +79,5 @@ jobs:
           strip --strip-unneeded "${EXT_NAME}.so"
           # smoke test
           php -d extension=./"${EXT_NAME}.so" -r "echo 'Extension version: ' .phpversion('flexid_utils');"
-          echo "PIE artifact php_${EXT_NAME}-${EXT_VERSION}_php${PHP_VER}-${ARCH}-linux-${LIBC}-${TS}
+          echo "PIE artifact php_${EXT_NAME}-${EXT_VERSION}_php${PHP_VER}-${ARCH}-linux-${LIBC}-${TS}"
 
