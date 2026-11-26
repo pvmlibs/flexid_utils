@@ -13,10 +13,10 @@ jobs:
   build:
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
 
+    # official php docker images in 8.6 changed ts naming convention, default is now zts
     container:
       image: ${{ format('php:{0}{1}{2}',
-        matrix.php == matrix.php,
-        # official php docker images in 8.6 changed ts naming convention, default is now zts
+        matrix.php,
         matrix.ts == 'zts' && '-zts' || (matrix.php == '8.6' && '-nts' || ''),
         matrix.libc == 'musl' && '-alpine' || '') }}
 
