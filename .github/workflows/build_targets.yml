@@ -77,7 +77,7 @@ jobs:
           
           strip --strip-unneeded "${EXT_NAME}.so"
           # smoke test
-          php -d extension="${EXT_NAME}.so" -r "echo 'Extension version: ' .phpversion('flexid_utils');"
+          php -d extension=./"${EXT_NAME}.so" -r "echo 'Extension version: ' .phpversion('flexid_utils');"
                                                                                        
           ARCHIVE="php_${EXT_NAME}-${EXT_VERSION}_php${PHP_VER}-${ARCH}-linux-${LIBC}-${TS}.tgz"
           tar czf "$ARCHIVE" "${EXT_NAME}.so"
